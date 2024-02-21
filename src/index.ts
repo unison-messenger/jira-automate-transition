@@ -24,12 +24,21 @@ async function run() {
       } = context;
 
       console.log(`Event name: ${eventName}, action: ${payload.action}`)
-      let isOpened = eventName === "pull_request_target" && payload.action === "opened"
-      let isReviewRequested = eventName === "pull_request_target" && payload.action === "review_requested"
-      let isReviewSubmitted = eventName === "pull_request_review" && payload.action === "submitted"
-      let isPrClosed = eventName === "pull_request_target" && payload.action === "closed"
 
-      if (isOpened || isReviewRequested) {
+      let isPullRequest = (eventName === "pull_request_target" || eventName === "pull_request")
+      let isReview = eventName === "pull_request_review"
+
+      let isOpened = isPullRequest && payload.action === "opened"
+      let isPrReopened = isPullRequest && payload.action === "reopened"
+      let isReadyForReview = isPullRequest && payload.action === "ready_for_review"
+      let isReviewRequested = isPullRequest && payload.action === "review_requested"
+
+      let isConvertedToDraft = isPullRequest && payload.action === "converted_to_draft"
+      let isPrClosed = isPullRequest && payload.action === "closed"
+
+      let isReviewSubmitted = isReview && payload.action === "submitted"
+
+      if (isOpened || isPrReopened || isReviewRequested || isReadyForReview) {
         const {
           pull_request: {
             head: { ref }
@@ -57,13 +66,24 @@ async function run() {
           review_id: id
         });
         if (isRequestChange) {
-          core.info(`Branch name: ${ref}`);
+          console.log("Changes are request: changing task status")
           await handleTransitionIssue({
             ...parsedInput,
             colName: parsedInput.columnToMoveToWhenChangesRequested,
             branchName: ref
           });
         }
+      } else if (isConvertedToDraft) {
+        const {
+          pull_request: {
+            head: { ref }
+          }
+        } = payload as Webhooks.EventPayloads.WebhookPayloadPullRequest;
+          await handleTransitionIssue({
+            ...parsedInput,
+            colName: parsedInput.columnToMoveToWhenChangesRequested,
+            branchName: ref
+          });
       } else if (isPrClosed) {
         const {
           pull_request: {
@@ -72,15 +92,29 @@ async function run() {
           }
         } = payload as Webhooks.EventPayloads.WebhookPayloadPullRequest;
         if (merged && parsedInput.columnToMoveToWhenMerged) {
-          core.info(`Branch name: ${ref}`);
+          console.log("Changes are merged: changing task status")
           await handleTransitionIssue({
             ...parsedInput,
             colName: parsedInput.columnToMoveToWhenMerged,
             branchName: ref
           });
+        } else {
+          console.log("Changes are not merged: changing task status accordingly")
+          const {
+            pull_request: {
+              head: { ref }
+            }
+          } = payload as Webhooks.EventPayloads.WebhookPayloadPullRequest;
+          await handleTransitionIssue({
+            ...parsedInput,
+            colName: parsedInput.columnToMoveToWhenChangesRequested,
+            branchName: ref
+          });
         }
       } else {
-        console.log(`Unsupported github event: ${eventName}, action: ${payload.action}`)
+        let errorMessage = `Unsupported github event: ${eventName}, action: ${payload.action}. Are you sure your configuration is correct?`
+        console.log(errorMessage)
+        core.setFailed(errorMessage)
       }
     }
   } catch (error: any) {
