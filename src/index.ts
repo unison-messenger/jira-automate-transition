@@ -9,6 +9,7 @@ import { ParsedResult } from './interfaces';
 
 async function run() {
   try {
+    console.log("Parsing args...")
     const { parsedInput, success, exit, message } = getArgs() as ParsedResult;
     if (!parsedInput && !success && exit && message) {
       core.warning(message);
@@ -21,25 +22,27 @@ async function run() {
         payload,
         eventName
       } = context;
-      if (
-        eventName === "pull_request" &&
-        payload.action === "review_requested"
-      ) {
+
+      console.log(`Event name: ${eventName}, action: ${payload.action}`)
+      let isOpened = eventName === "pull_request_target" && payload.action === "opened"
+      let isReviewRequested = eventName === "pull_request" && payload.action === "review_requested"
+      let isReviewSubmitted = eventName === "pull_request_review" && payload.action === "submitted"
+      let isPrClosed = eventName === "pull_request" && payload.action === "closed"
+
+      if (isOpened || isReviewRequested) {
         const {
           pull_request: {
             head: { ref }
           }
         } = payload as Webhooks.EventPayloads.WebhookPayloadPullRequest;
+        console.log(`Branch name: ${ref}`)
         core.info(`Branch name: ${ref}`);
         await handleTransitionIssue({
           ...parsedInput,
           colName: parsedInput.columnToMoveToWhenReviewRequested,
           branchName: ref
         });
-      } else if (
-        eventName === "pull_request_review" &&
-        payload.action === "submitted"
-      ) {
+      } else if (isReviewSubmitted) {
         const {
           pull_request: {
             number,
@@ -61,7 +64,7 @@ async function run() {
             branchName: ref
           });
         }
-      } else if (eventName === "pull_request" && payload.action === "closed") {
+      } else if (isPrClosed) {
         const {
           pull_request: {
             merged,
@@ -76,6 +79,8 @@ async function run() {
             branchName: ref
           });
         }
+      } else {
+        console.log(`Unsupported github event: ${eventName}, action: ${payload.action}`)
       }
     }
   } catch (error: any) {

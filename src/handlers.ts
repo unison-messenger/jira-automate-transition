@@ -12,6 +12,7 @@ const transitionIssue = async ({
   jiraIssueId,
   colName
 }: HandleTransitionParams) => {
+  console.log(`Transition issue ${jiraIssueId} to status ${colName}`)
   const jira = new JiraClient(jiraToken);
 
   const issueDetail = await jira.request(
@@ -22,6 +23,7 @@ const transitionIssue = async ({
       status: { name }
     }
   } = issueDetail;
+  console.log(`Current issue status is ${name}`)
   if (name === colName) {
     warning(`
         The issue ${jiraIssueId} is already in status ${colName}.
@@ -34,6 +36,7 @@ const transitionIssue = async ({
     const transitionId = availableTransitions.transitions?.find(
       (t: any) => t.to.name === colName
     )?.id;
+    console.log(`Transition id is ${transitionId}`)
     if (!transitionId)
       throw new Error(`
       There was an error trying to transition issue ${jiraIssueId}:
@@ -42,11 +45,14 @@ const transitionIssue = async ({
       See more: https://confluence.atlassian.com/adminjiraserver073/working-with-workflows-861253510.html
     `);
     info(`Changing issue ${jiraIssueId} to ${colName}`);
-    await jira.request(
+    console.log(`Changing issue ${jiraIssueId} to ${colName}`)
+    let result = await jira.request(
       `${jiraEndpoint}/rest/api/2/issue/${jiraIssueId}/transitions`,
       "POST",
       { transition: { id: transitionId } }
     );
+    console.log(`Issue ${jiraIssueId} successfully transitioned to ${colName}`)
+    console.log(`Response: ${JSON.stringify(result, null, 4)}`)
   }
 };
 
@@ -55,6 +61,7 @@ const handleTransitionIssue = async ({
   branchName,
   ...rest
 }: HandleTransitionParams) => {
+  console.log(`Transitioning issue: branch name = ${branchName}, issueId = ${rest.jiraIssueId}`)
   if (resolveTicketIdsFunc && branchName) {
     const result = await resolveTicketIdsFunc(branchName);
     if (Array.isArray(result)) {
