@@ -25,9 +25,9 @@ async function run() {
 
       console.log(`Event name: ${eventName}, action: ${payload.action}`)
       let isOpened = eventName === "pull_request_target" && payload.action === "opened"
-      let isReviewRequested = eventName === "pull_request" && payload.action === "review_requested"
+      let isReviewRequested = eventName === "pull_request_target" && payload.action === "review_requested"
       let isReviewSubmitted = eventName === "pull_request_review" && payload.action === "submitted"
-      let isPrClosed = eventName === "pull_request" && payload.action === "closed"
+      let isPrClosed = eventName === "pull_request_target" && payload.action === "closed"
 
       if (isOpened || isReviewRequested) {
         const {
