@@ -1,17 +1,21 @@
-import { JiraClient } from "./jira";
-import { HandleTransitionParams } from "./interfaces";
-import { warning, info } from "@actions/core";
+import {
+  info,
+  warning,
+} from '@actions/core';
+
+import { HandleTransitionParams } from './interfaces';
+import { JiraClient } from './jira';
 
 const transitionIssue = async ({
-  jiraTokenEncoded,
+  jiraToken,
   jiraEndpoint,
   jiraIssueId,
   colName
 }: HandleTransitionParams) => {
-  const jira = new JiraClient(jiraTokenEncoded);
+  const jira = new JiraClient(jiraToken);
 
   const issueDetail = await jira.request(
-    `${jiraEndpoint}/rest/api/3/issue/${jiraIssueId}`
+    `${jiraEndpoint}/rest/api/2/issue/${jiraIssueId}`
   );
   const {
     fields: {
@@ -25,7 +29,7 @@ const transitionIssue = async ({
       `);
   } else {
     const availableTransitions = await jira.request(
-      `${jiraEndpoint}/rest/api/3/issue/${jiraIssueId}/transitions`
+      `${jiraEndpoint}/rest/api/2/issue/${jiraIssueId}/transitions`
     );
     const transitionId = availableTransitions.transitions?.find(
       (t: any) => t.to.name === colName
@@ -39,7 +43,7 @@ const transitionIssue = async ({
     `);
     info(`Changing issue ${jiraIssueId} to ${colName}`);
     await jira.request(
-      `${jiraEndpoint}/rest/api/3/issue/${jiraIssueId}/transitions`,
+      `${jiraEndpoint}/rest/api/2/issue/${jiraIssueId}/transitions`,
       "POST",
       { transition: { id: transitionId } }
     );

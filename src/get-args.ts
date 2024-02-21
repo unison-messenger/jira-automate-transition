@@ -1,7 +1,13 @@
-import * as core from "@actions/core";
-import { parse } from "yaml";
-import { readFileSync } from "fs";
-import { ParsedResult, JiraConfig, JiraConfigFile } from "./interfaces";
+import { readFileSync } from 'fs';
+import { parse } from 'yaml';
+
+import * as core from '@actions/core';
+
+import {
+  JiraConfig,
+  JiraConfigFile,
+  ParsedResult,
+} from './interfaces';
 
 const configPath = `${process.env.HOME}/jira/config.yml`;
 

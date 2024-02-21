@@ -1,11 +1,11 @@
-import fetch from "node-fetch";
+import fetch from 'node-fetch';
 
 const options = (token: string) => {
   return {
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
-      Authorization: `Basic ${token}`
+      Authorization: `Bearer ${token}`
     }
   };
 };

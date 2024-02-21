@@ -1,6 +1,6 @@
 {
   "name": "jira-automate-transition",
-  "version": "1.0.7-beta",
+  "version": "1.0.8",
   "description": "Github Action to automate Jira ticket transition",
   "dependencies": {
     "@actions/core": "^1.2.3",
@@ -14,7 +14,8 @@
     "yaml": "^1.7.2"
   },
   "devDependencies": {
-    "@zeit/ncc": "^0.21.1",
+    "@vercel/ncc": "^0.38.1",
+    "typescript": "^5.3.3",
     "dotenv": "^8.2.0",
     "husky": "^4.2.3"
   },

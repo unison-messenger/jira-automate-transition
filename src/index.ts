@@ -1,10 +1,11 @@
-import * as core from "@actions/core";
-import { getArgs } from "./get-args";
-import { ParsedResult } from "./interfaces";
-import * as github from "@actions/github";
-import { Github } from "./github";
-import { handleTransitionIssue } from "./handlers";
-import * as Webhooks from "@octokit/webhooks";
+import * as core from '@actions/core';
+import * as github from '@actions/github';
+import * as Webhooks from '@octokit/webhooks';
+
+import { getArgs } from './get-args';
+import { Github } from './github';
+import { handleTransitionIssue } from './handlers';
+import { ParsedResult } from './interfaces';
 
 async function run() {
   try {
@@ -28,7 +29,7 @@ async function run() {
           pull_request: {
             head: { ref }
           }
-        } = payload as Webhooks.WebhookPayloadPullRequest;
+        } = payload as Webhooks.EventPayloads.WebhookPayloadPullRequest;
         core.info(`Branch name: ${ref}`);
         await handleTransitionIssue({
           ...parsedInput,
@@ -45,7 +46,7 @@ async function run() {
             head: { ref }
           },
           review: { id }
-        } = context.payload as Webhooks.WebhookPayloadPullRequestReview;
+        } = context.payload as Webhooks.EventPayloads.WebhookPayloadPullRequestReview;
         const { githubToken } = parsedInput;
         const githubWrapper = new Github(githubToken, owner, repo);
         const isRequestChange = await githubWrapper.checkReviewIsRequestChange({
@@ -66,7 +67,7 @@ async function run() {
             merged,
             head: { ref }
           }
-        } = payload as Webhooks.WebhookPayloadPullRequest;
+        } = payload as Webhooks.EventPayloads.WebhookPayloadPullRequest;
         if (merged && parsedInput.columnToMoveToWhenMerged) {
           core.info(`Branch name: ${ref}`);
           await handleTransitionIssue({
@@ -77,7 +78,7 @@ async function run() {
         }
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     core.setFailed(error.message);
   }
 }

@@ -37,7 +37,7 @@ export interface ParsedResult {
 }
 type HandlerParams = Pick<
   ParsedInput,
-  "jiraTokenEncoded" | "jiraEndpoint" | "jiraIssueId" | "resolveTicketIdsFunc"
+  "jiraToken" | "jiraTokenEncoded" | "jiraEndpoint" | "jiraIssueId" | "resolveTicketIdsFunc"
 >;
 
 export type HandleTransitionParams = HandlerParams & {
